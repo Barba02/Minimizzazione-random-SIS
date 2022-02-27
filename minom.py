@@ -104,9 +104,7 @@ def min_blif():
     # esecuzione degli script
     for file in script:
         pr = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)
-        for file_row in file:
-            pr.stdin.write(file_row + "\n")
-
+        pr.stdin.write("source " + file + "\n")
 
 
 if __name__ == "__main__":
