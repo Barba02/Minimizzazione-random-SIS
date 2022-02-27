@@ -5,6 +5,8 @@ macchina con sis installato
 vengono creati file
 spiega parametri e funzionamento
 
-todo: stampa statisctiche su terminale e scelta di quali trasformare in script
+TODO
+script stg
+esecuzione degli script
 
 
