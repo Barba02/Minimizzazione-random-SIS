@@ -103,7 +103,7 @@ def min_blif():
     # lista degli script
     script = []
     for file in os.listdir():
-        if file[-6:] == "script":
+        if file[-6:] == "script" and blif[:-5] in file:
             script.append(file)
     # esecuzione degli script
     for file in script:
@@ -145,7 +145,7 @@ if __name__ == "__main__":
             process.stdin.write("read_blif \"" + blif + "\"\n")
             # comandi per portare la stg in circuito
             if stg:
-                assign_algo = "jedi" if (random.random() % 2 == 0) else "nova"
+                assign_algo = "jedi" if (random.randrange(2) == 0) else "nova"
                 comandi.write("state_assign " + assign_algo + "\n")
                 process.stdin.write("state_minimize\n")
                 process.stdin.write("state_assign " + assign_algo + "\n")

@@ -6,5 +6,4 @@ vengono creati file
 spiega parametri e funzionamento
 
 TODO
-check nova e stamina
-check script nella stessa carttella dopo esecuzione
+esegui sia nova che jedi con stessi comandi
