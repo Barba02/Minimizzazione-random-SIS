@@ -76,6 +76,8 @@ def script_generation():
                 counter += 1
         # lettura del corrispondente file di comandi fino alla riga trovata
         script = "read_blif " + blif + "\n"
+        if stg:
+            script += "state_minimize stamina\n"
         nome_file = blif[:-5] + "_" + mn + "_" + ml
         with open(file.replace("stats", "comandi"), "r") as cm:
             counter = 1
@@ -84,6 +86,8 @@ def script_generation():
                     script += file_row
                 else:
                     break
+                if stg and counter == 1:
+                    script += "stg_to_network\n"
                 counter += 1
             script += "write_blif " + nome_file + ".blif" + "\n"
         # creazione del file di script
@@ -103,7 +107,7 @@ def min_blif():
             script.append(file)
     # esecuzione degli script
     for file in script:
-        pr = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)
+        pr = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.DEVNULL, text=True)
         pr.stdin.write("source " + file + "\n")
 
 
@@ -136,7 +140,7 @@ if __name__ == "__main__":
         with open("auto_increment.txt", "w") as ai:
             ai.write(str(pk+1))
         # inizio sottoprocesso
-        process = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)
+        process = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.DEVNULL, text=True)
         with open(blif[:-5] + "_" + str(pk) + "_comandi.txt", "w") as comandi:
             process.stdin.write("read_blif \"" + blif + "\"\n")
             # comandi per portare la stg in circuito

@@ -6,4 +6,5 @@ vengono creati file
 spiega parametri e funzionamento
 
 TODO
-script stg
+check nova e stamina
+check script nella stessa carttella dopo esecuzione
