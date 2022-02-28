@@ -7,3 +7,4 @@ spiega parametri e funzionamento
 
 TODO
 esegui sia nova che jedi con stessi comandi
+distingui process datapath e stg
