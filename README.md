@@ -5,6 +5,5 @@ macchina con sis installato
 vengono creati file
 spiega parametri e funzionamento
 
-TODO
-esegui sia nova che jedi con stessi comandi
-distingui process datapath e stg
+ToDo
+fsm due processi per fare stessi comandi con nova e jedi
