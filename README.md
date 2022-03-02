@@ -4,6 +4,7 @@ per fare script poi bisogna aggiungere certe cose
 macchina con sis installato
 vengono creati file
 spiega parametri e funzionamento
+tenere nella stessa cartella
 
 ToDo
 canalizza warning

@@ -5,38 +5,68 @@ import subprocess as sp
 import concurrent.futures
 
 
+# ricerca di un stg nel file
+def ricerca_kiss(file):
+    with open(file, "r") as content:
+        for line in content:
+            if "kiss" in line:
+                return True
+    return False
+
+
 # creazione del nome del file di script temporaneo
-def nome_tmp_file_script(pk, file, algo=None):
+def nome_tmp_file_script(pk, file):
     file = file[:-5]
     file += "_" + str(pk)
-    if algo:
-        file += "_" + algo
     return file
 
 
 # generazione della lista degli input
 def genera_input():
     global num_input
+    ni = num_input
     # comandi sis per la sintesi
     comandi = ["source script.rugged", "eliminate x", "sweep", "fx", "resub", "simplify", "full_simplify", "collapse",
                "reduce_depth", "espresso", "decomp"]
     # sorteggio del numero previsto di comandi
     lista = []
-    for _ in range(num_input):
+    while ni > 0:
         istruzione = comandi[random.randrange(len(comandi))]
         # calcolo del parametro da passare a eliminate
         if istruzione == "eliminate x":
             istruzione = istruzione.replace("x", str(random.randrange(-5, 6)))
         # aggiunta delle istruzioni
+        ni -= 1
         lista.append(istruzione)
         lista.append("print_stats")
         # esecuzione di espresso dopo reduce_depth
-        if istruzione == "reduce_depth":
-            num_input -= 1
+        if istruzione == "reduce_depth" and ni > 0:
+            ni -= 1
             lista.append("espresso")
             lista.append("print_stats")
     # restituzione della lista
     return lista
+
+
+# ricerca del minimo di nodi o di letterali e della linea a cui si giunge a quel risultato
+def find_min(pos, lines):
+    global stg, mode, lista_risultati
+    nodes = []
+    lits = []
+    for li in lines:
+        nodes.append(int(li[li.find("nodes")+6:li.find("latches")]))
+        if not stg:
+            lits.append(int(li[li.find("lits") + 10:]))
+        else:
+            lits.append(int(li[li.find("lits") + 10:li.find("#states")]))
+    ar = lits if (mode == "a") else nodes
+    minimum = ar[0]
+    minimum_line = 0
+    for j in range(1, len(ar)):
+        if ar[j] < minimum:
+            minimum = ar[j]
+            minimum_line = j
+    lista_risultati[pos] = minimum, minimum_line
 
 
 # esecuzione di un tentativo su datapath
@@ -54,18 +84,23 @@ def tentativo_datapath(pk):
             if istruzione != "print_stats":
                 file.write(istruzione + "\n")
             p.stdin.write(istruzione + "\n")
-        file.write("write_blif min_" + file_tmp + ".blif\n")
         p.stdin.write("quit\n")
     # recupero output
     sis_out = str(p.communicate()[0]).split("sis> sis> ")
     sis_out.pop(0)
+    find_min(pk, sis_out)
 
 
+# esecuzione dello stesso tentativo su fsm sia con nova sia con jedi
 def tentativo_fsm(pk):
     global file_blif
     lista_istruzioni = genera_input()
     for algo in ["jedi", "nova"]:
-        file_tmp = nome_tmp_file_script(pk, file_blif, algo)
+        if algo == "jedi":
+            index = pk * 2
+        else:
+            index = pk * 2 + 1
+        file_tmp = nome_tmp_file_script(index, file_blif)
         # inizio processo
         p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)  # stderr=sp.DEVNULL,
         with open(file_tmp, "w") as file:
@@ -83,24 +118,12 @@ def tentativo_fsm(pk):
                 if istruzione != "print_stats":
                     file.write(istruzione + "\n")
                 p.stdin.write(istruzione + "\n")
-            file.write("write_blif min_" + file_tmp + ".blif\n")
             p.stdin.write("quit\n")
         # recupero output
         sis_out = str(p.communicate()[0]).split("sis> sis> ")
         sis_out.pop(0)
         sis_out.pop(0)
-
-
-# ricerca di una stt in un file e nei suoi sottocomponenti
-def ricerca_kiss(file):
-    with open(file, "r") as content:
-        for line in content:
-            if "kiss" in line:
-                return True
-            ''' else:
-                if "search" in line and ricerca_kiss(line.split()[1]):
-                    return True '''
-    return False
+        find_min(index, sis_out)
 
 
 # entry point
@@ -125,15 +148,17 @@ if __name__ == "__main__":
         exit(1)
     # input e verifica modalità di minimizzazione
     mode = str(sys.argv[4])
-    if mode != "a" and mode != "r" and mode != "ar":
+    if mode != "a" and mode != "r":
         print("Inserire una modalità di minimizzazione valida")
         exit(1)
-    # ricerca di una stt nel blif
-    stt = ricerca_kiss(file_blif)
+    # controllo se il file è una fsm
+    stg = ricerca_kiss(file_blif)
+    # generazione lista per il salvataggio dei risultati
+    lista_risultati = [0] * num_tentativi if (not stg) else [0] * num_tentativi * 2
     # creazione ed esecuzione dei tentativi su thread diversi
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         for i in range(num_tentativi):
-            if not stt:
+            if not stg:
                 executor.submit(tentativo_datapath, i)
             else:
                 executor.submit(tentativo_fsm, i)
