@@ -97,7 +97,7 @@ if __name__ == "__main__":
     comandi = ["source script.rugged", "eliminate x", "sweep", "fx", "resub", "simplify", "full_simplify", "collapse",
                "reduce_depth", "espresso", "decomp"]
     # creazione ed esecuzione dei tentativi su thread diversi
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         for i in range(num_tentativi):
             if not stt:
                 executor.submit(tentativo, i)
