@@ -6,6 +6,4 @@ vengono creati file
 spiega parametri e funzionamento
 
 ToDo
-centralizza generazione comandi
-evita sovrascrittura file
 canalizza warning
