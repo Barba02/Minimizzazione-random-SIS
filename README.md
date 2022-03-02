@@ -6,4 +6,6 @@ vengono creati file
 spiega parametri e funzionamento
 
 ToDo
-fsm due processi per fare stessi comandi con nova e jedi
+centralizza generazione comandi
+evita sovrascrittura file
+canalizza warning

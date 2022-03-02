@@ -1,12 +1,11 @@
-import concurrent.futures
 import os
-import random
 import sys
-import time
+import random
 import subprocess as sp
+import concurrent.futures
 
 
-def nome_tmp_file_script(pk, file, algo):
+def nome_tmp_file_script(pk, file, algo=None):
     file = file[:-5]
     file += "_" + str(pk)
     if algo:
@@ -14,26 +13,17 @@ def nome_tmp_file_script(pk, file, algo):
     return file
 
 
-# esecuzione di un tentativo di minimizzazione di fsm per n secondi
-def tentativo(pk, assign_algo=None):
-    global file_blif, tempo_esecuzione, stt, comandi
-    file_tmp = nome_tmp_file_script(pk, file_blif, assign_algo)
+def tentativo_datapath(pk):
+    global file_blif, num_input, comandi
+    file_tmp = nome_tmp_file_script(pk, file_blif)
     # inizio processo
     p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)  # stderr=sp.DEVNULL,
     with open(file_tmp, "w") as file:
         # intestazione del file di script
         file.write(f"read_blif \"{file_blif}\"\n")
         p.stdin.write(f"read_blif \"{file_blif}\"\n")
-        if stt:
-            file.write("state_minimize stamina\n")
-            p.stdin.write("state_minimize stamina\n")
-            file.write(f"state_assign {assign_algo}\n")
-            p.stdin.write(f"state_assign {assign_algo}\n")
-            file.write("stg_to_network\n")
-            p.stdin.write("stg_to_network\n")
         # esecuzione dei comandi
-        fine = time.time() + tempo_esecuzione
-        while time.time() <= fine:
+        for _ in range(num_input):
             istruzione = comandi[random.randrange(len(comandi))]
             # generazione parametro di eliminate
             if istruzione == "eliminate x":
@@ -46,13 +36,71 @@ def tentativo(pk, assign_algo=None):
                 file.write("espresso\n")
                 p.stdin.write("espresso\n")
                 p.stdin.write("print_stats\n")
+        file.write("write_blif min_" + file_tmp + ".blif")
         p.stdin.write("quit\n")
     # recupero output
     sis_out = str(p.communicate()[0]).split("sis> sis> ")
     sis_out.pop(0)
-    if stt:
-        sis_out.pop(0)
     print(sis_out)
+
+
+def tentativo_fsm(pk):
+    global file_blif, num_input, comandi
+    file_1 = nome_tmp_file_script(pk, file_blif, "jedi")
+    file_2 = nome_tmp_file_script(pk, file_blif, "nova")
+    # inizio processo
+    p1 = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)
+    p2 = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)
+    with open(file_1, "w") as f1, open(file_2, "w") as f2:
+        # intestazione dei file di script
+        f1.write(f"read_blif \"{file_blif}\"\n")
+        f2.write(f"read_blif \"{file_blif}\"\n")
+        p1.stdin.write(f"read_blif \"{file_blif}\"\n")
+        p2.stdin.write(f"read_blif \"{file_blif}\"\n")
+        f1.write("state_minimize stamina\n")
+        f2.write("state_minimize stamina\n")
+        p1.stdin.write("state_minimize stamina\n")
+        p2.stdin.write("state_minimize stamina\n")
+        f1.write("state_assign jedi\n")
+        f2.write("state_assign nova\n")
+        p1.stdin.write("state_assign jedi\n")
+        p2.stdin.write("state_assign nova\n")
+        f1.write("stg_to_network\n")
+        f2.write("stg_to_network\n")
+        p1.stdin.write("stg_to_network\n")
+        p2.stdin.write("stg_to_network\n")
+        # esecuzione dei comandi
+        for _ in range(num_tentativi):
+            istruzione = comandi[random.randrange(len(comandi))]
+            # generazione parametro di eliminate
+            if istruzione == "eliminate x":
+                istruzione = istruzione.replace("x", str(random.randrange(-5, 6)))
+            f1.write(istruzione + "\n")
+            f2.write(istruzione + "\n")
+            p1.stdin.write(istruzione + "\n")
+            p2.stdin.write(istruzione + "\n")
+            p1.stdin.write("print_stats\n")
+            p2.stdin.write("print_stats\n")
+            # esecuzione di espresso dopo reduce_depth
+            if istruzione == "reduce_depth":
+                f1.write("espresso\n")
+                f2.write("espresso\n")
+                p1.stdin.write("espresso\n")
+                p2.stdin.write("espresso\n")
+                p1.stdin.write("print_stats\n")
+                p2.stdin.write("print_stats\n")
+        f1.write("write_blif min_" + file_1 + ".blif")
+        f2.write("write_blif min_" + file_2 + ".blif")
+        p1.stdin.write("quit\n")
+        p2.stdin.write("quit\n")
+    # recupero output
+    sis_out1 = str(p1.communicate()[0]).split("sis> sis> ")
+    sis_out1.pop(0)
+    sis_out1.pop(0)
+    sis_out2 = str(p2.communicate()[0]).split("sis> sis> ")
+    sis_out2.pop(0)
+    sis_out2.pop(0)
+    print(sis_out1, sis_out2)
 
 
 # ricerca di una stt in un file e nei suoi sottocomponenti
@@ -81,10 +129,10 @@ if __name__ == "__main__":
     if num_tentativi < 1:
         print("Inserire almeno 1 tentativo")
         exit(1)
-    # input e verifica tempo di esecuzione in secondi
-    tempo_esecuzione = int(sys.argv[3])
-    if tempo_esecuzione < 1:
-        print("Inserire un tempo di esecuzione di almeno 1 secondo")
+    # input e verifica numero di input per tentativo
+    num_input = int(sys.argv[3])
+    if num_input < 1:
+        print("Inserire almeno 1 input per tentativo")
         exit(1)
     # input e verifica modalità di minimizzazione
     mode = str(sys.argv[4])
@@ -100,7 +148,6 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         for i in range(num_tentativi):
             if not stt:
-                executor.submit(tentativo, i)
+                executor.submit(tentativo_datapath, i)
             else:
-                executor.submit(tentativo, i, "jedi")
-                executor.submit(tentativo, i, "nova")
+                executor.submit(tentativo_fsm, i)
