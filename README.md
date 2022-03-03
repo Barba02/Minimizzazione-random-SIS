@@ -8,3 +8,4 @@ tenere nella stessa cartella
 
 ToDo
 canalizza warning
+sovrascrittura script finale se in meno righe
