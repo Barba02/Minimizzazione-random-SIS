@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import multiprocessing
 import subprocess as sp
 import concurrent.futures
 
@@ -141,14 +142,15 @@ def crea_script(index, riga):
     # scrittura dello script migliore
     add = 1 if (not stg) else 4
     file_tmp = nome_tmp_file_script(index, file_blif)
-    with open(file_tmp, "r") as r, open("min_" + file_tmp, "w") as w:
+    file_script_name = "min_" + file_tmp[:file_tmp.rfind("_")]
+    with open(file_tmp, "r") as r, open(file_script_name, "w") as w:
         for _ in range(riga+add):
             w.write(r.readline())
-        w.write("write_blif min_" + file_blif + "\n")
     # cancellazione degli altri script
     for file in os.listdir():
         if file.endswith(".script") and "min" not in file:
             os.remove(file)
+    return file_script_name
 
 
 # entry point
@@ -181,13 +183,13 @@ if __name__ == "__main__":
     # generazione lista per il salvataggio dei risultati
     lista_risultati = [0] * num_tentativi if (not stg) else [0] * num_tentativi * 2
     # creazione ed esecuzione dei tentativi su thread diversi
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
         for i in range(num_tentativi):
             if not stg:
                 executor.submit(tentativo_datapath, i)
             else:
                 executor.submit(tentativo_fsm, i)
+    # calcolo dello script migliore
     best_result = best_script(lista_risultati)
-    print(lista_risultati)
-    print(best_result)
-    crea_script(best_result, lista_risultati[best_result][1])
+    # creazione del nuovo file di script
+    file_script = crea_script(best_result, lista_risultati[best_result][1])
