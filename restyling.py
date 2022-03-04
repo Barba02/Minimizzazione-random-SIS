@@ -17,7 +17,7 @@ def ricerca_kiss(file):
 # creazione del nome del file di script temporaneo
 def nome_tmp_file_script(pk, file):
     file = file[:-5]
-    file += "_" + str(pk)
+    file += "_" + str(pk) + ".script"
     return file
 
 
@@ -126,6 +126,31 @@ def tentativo_fsm(pk):
         find_min(index, sis_out)
 
 
+def best_script(lista):
+    index = 0
+    minimum = lista[0][0]
+    for j in range(1, len(lista)):
+        if lista[j][0] < minimum:
+            index = j
+            minimum = lista[j][0]
+    return index
+
+
+def crea_script(index, riga):
+    global file_blif, stg
+    # scrittura dello script migliore
+    add = 1 if (not stg) else 4
+    file_tmp = nome_tmp_file_script(index, file_blif)
+    with open(file_tmp, "r") as r, open("min_" + file_tmp, "w") as w:
+        for _ in range(riga+add):
+            w.write(r.readline())
+        w.write("write_blif min_" + file_blif + "\n")
+    # cancellazione degli altri script
+    for file in os.listdir():
+        if file.endswith(".script") and "min" not in file:
+            os.remove(file)
+
+
 # entry point
 if __name__ == "__main__":
     # input e verifica file
@@ -162,3 +187,7 @@ if __name__ == "__main__":
                 executor.submit(tentativo_datapath, i)
             else:
                 executor.submit(tentativo_fsm, i)
+    best_result = best_script(lista_risultati)
+    print(lista_risultati)
+    print(best_result)
+    crea_script(best_result, lista_risultati[best_result][1])

@@ -1,0 +1,143 @@
+.model fsm
+.inputs RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 CHIUDI
+.outputs FINE_OPERAZIONE ERRORE_SENSORE VALVOLA_ACIDO VALVOLA_BASICO \
+SELETTORE_MUX VALVOLA_APERTA
+.latch    [385] LatchOut_v11   0
+.latch    [386] LatchOut_v12   1
+.latch    [387] LatchOut_v13   1
+.start_kiss
+.i 11
+.o 6
+.p 30
+.s 5
+.r RESET
+1---------- RESET RESET 00000-
+00--------- RESET RESET 00000-
+0100------- RESET EROGA_BASE 00010-
+01010------ RESET EROGA_BASE 00010-
+010110----- RESET EROGA_BASE 00010-
+010111----- RESET FINE 00000-
+0110000000- RESET FINE 00000-
+0110000001- RESET EROGA_ACIDO 00100-
+011000001-- RESET EROGA_ACIDO 00100-
+01100001--- RESET EROGA_ACIDO 00100-
+0110001---- RESET EROGA_ACIDO 00100-
+011001----- RESET EROGA_ACIDO 00100-
+01101------ RESET EROGA_ACIDO 00100-
+01110------ RESET EROGA_ACIDO 00100-
+0111100000- RESET EROGA_ACIDO 00100-
+0111100001- RESET ERRORE 01000-
+011110001-- RESET ERRORE 01000-
+01111001--- RESET ERRORE 01000-
+0111101---- RESET ERRORE 01000-
+011111----- RESET ERRORE 01000-
+1---------- EROGA_BASE RESET 00000-
+0---------0 EROGA_BASE EROGA_BASE 000110
+0---------1 EROGA_BASE FINE 10001-
+1---------- FINE RESET 00000-
+0---------- FINE FINE 10001-
+1---------- EROGA_ACIDO RESET 00000-
+0---------0 EROGA_ACIDO EROGA_ACIDO 001011
+0---------1 EROGA_ACIDO FINE 10001-
+1---------- ERRORE RESET 00000-
+0---------- ERRORE ERRORE 01000-
+.end_kiss
+.latch_order LatchOut_v11 LatchOut_v12 LatchOut_v13
+.code RESET 011
+.code EROGA_BASE 100
+.code FINE 010
+.code EROGA_ACIDO 000
+.code ERRORE 001
+.names RST START pH7 pH6 pH5 pH4 CHIUDI LatchOut_v11 LatchOut_v12 LatchOut_v13 \
+[385]
+0-----01-- 1
+0100----11 1
+010-0---11 1
+010--0--11 1
+.names RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 CHIUDI LatchOut_v12 \
+LatchOut_v13 [386]
+1------------ 1
+-0---------11 1
+0---------1-0 1
+0----------10 1
+--0111-----1- 1
+--10000000-1- 1
+.names RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 LatchOut_v12 LatchOut_v13 \
+[387]
+1----------- 1
+-0--------11 1
+0---------01 1
+011111-----1 1
+01111-1----1 1
+01111--1---1 1
+01111---1--1 1
+01111----1-1 1
+.names RST CHIUDI LatchOut_v12 LatchOut_v13 FINE_OPERAZIONE
+01-0 1
+0-10 1
+.names RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 LatchOut_v12 LatchOut_v13 \
+ERRORE_SENSORE
+0---------01 1
+011111-----1 1
+01111-1----1 1
+01111--1---1 1
+01111---1--1 1
+01111----1-1 1
+.names RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 CHIUDI LatchOut_v11 \
+LatchOut_v12 LatchOut_v13 VALVOLA_ACIDO
+0---------0000 1
+01101-------11 1
+011-01------11 1
+011-0-1-----11 1
+011-0--1----11 1
+011-0---1---11 1
+011-0----1--11 1
+0111-00000--11 1
+.names RST START pH7 pH6 pH5 pH4 CHIUDI LatchOut_v11 LatchOut_v12 LatchOut_v13 \
+VALVOLA_BASICO
+0-----01-- 1
+0100----11 1
+010-0---11 1
+010--0--11 1
+.names RST CHIUDI LatchOut_v11 LatchOut_v12 LatchOut_v13 SELETTORE_MUX
+001-- 1
+01--0 1
+0--10 1
+00000 1
+.names RST CHIUDI LatchOut_v11 LatchOut_v12 LatchOut_v13 VALVOLA_APERTA
+00000 1
+.exdc 
+.inputs RST START pH7 pH6 pH5 pH4 pH3 pH2 pH1 pH0 CHIUDI LatchOut_v11 \
+LatchOut_v12 LatchOut_v13
+.outputs [385] [386] [387] FINE_OPERAZIONE ERRORE_SENSORE VALVOLA_ACIDO \
+VALVOLA_BASICO SELETTORE_MUX VALVOLA_APERTA
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 [385]
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 [386]
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 [387]
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 FINE_OPERAZIONE
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 ERRORE_SENSORE
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 VALVOLA_ACIDO
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 VALVOLA_BASICO
+11- 1
+1-1 1
+.names LatchOut_v11 LatchOut_v12 LatchOut_v13 SELETTORE_MUX
+11- 1
+1-1 1
+.names RST CHIUDI LatchOut_v12 LatchOut_v13 VALVOLA_APERTA
+1--- 1
+-1-- 1
+--1- 1
+---1 1
+.end
