@@ -70,24 +70,38 @@ def find_min(pos, lines):
     lista_risultati[pos] = minimum, minimum_line
 
 
+def process(file, comandi, algo=None, write=True):
+    global file_blif
+    # inizio processo
+    p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)  # stderr=sp.DEVNULL,
+    with open(file, "a") as f:
+        # intestazione del file di script
+        if write:
+            f.write(f"read_blif {file_blif}\n")
+        p.stdin.write(f"read_blif {file_blif}\n")
+        if algo is not None:
+            if write:
+                f.write("state_minimize stamina\n")
+                f.write(f"state_assign {algo}\n")
+                f.write("stg_to_network\n")
+            p.stdin.write("state_minimize stamina\n")
+            p.stdin.write(f"state_assign {algo}\n")
+            p.stdin.write("stg_to_network\n")
+        # esecuzione dei comandi
+        for istruzione in comandi:
+            if istruzione != "print_stats" and write:
+                f.write(istruzione + "\n")
+            p.stdin.write(istruzione + "\n")
+        p.stdin.write("quit\n")
+    return str(p.communicate()[0]).split("sis> sis> ")
+
+
 # esecuzione di un tentativo su datapath
 def tentativo_datapath(pk):
     global file_blif
     file_tmp = nome_tmp_file_script(pk, file_blif)
-    # inizio processo
-    p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)  # stderr=sp.DEVNULL,
-    with open(file_tmp, "w") as file:
-        # intestazione del file di script
-        file.write(f"read_blif {file_blif}\n")
-        p.stdin.write(f"read_blif {file_blif}\n")
-        # esecuzione dei comandi
-        for istruzione in genera_input():
-            if istruzione != "print_stats":
-                file.write(istruzione + "\n")
-            p.stdin.write(istruzione + "\n")
-        p.stdin.write("quit\n")
-    # recupero output
-    sis_out = str(p.communicate()[0]).split("sis> sis> ")
+    # esecuzione di sis
+    sis_out = process(file_tmp, genera_input())
     sis_out.pop(0)
     find_min(pk, sis_out)
 
@@ -102,26 +116,8 @@ def tentativo_fsm(pk):
         else:
             index = pk * 2 + 1
         file_tmp = nome_tmp_file_script(index, file_blif)
-        # inizio processo
-        p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, text=True)  # stderr=sp.DEVNULL,
-        with open(file_tmp, "w") as file:
-            # intestazione del file di script
-            file.write(f"read_blif {file_blif}\n")
-            p.stdin.write(f"read_blif {file_blif}\n")
-            file.write("state_minimize stamina\n")
-            p.stdin.write("state_minimize stamina\n")
-            file.write(f"state_assign {algo}\n")
-            p.stdin.write(f"state_assign {algo}\n")
-            file.write("stg_to_network\n")
-            p.stdin.write("stg_to_network\n")
-            # esecuzione dei comandi
-            for istruzione in lista_istruzioni:
-                if istruzione != "print_stats":
-                    file.write(istruzione + "\n")
-                p.stdin.write(istruzione + "\n")
-            p.stdin.write("quit\n")
-        # recupero output
-        sis_out = str(p.communicate()[0]).split("sis> sis> ")
+        # esecuzione di sis
+        sis_out = process(file_tmp, lista_istruzioni, algo)
         sis_out.pop(0)
         sis_out.pop(0)
         find_min(index, sis_out)
@@ -151,6 +147,42 @@ def crea_script(index, riga):
         if file.endswith(".script") and "min" not in file:
             os.remove(file)
     return file_script_name
+
+
+def minimize(file):
+    global stg
+    # recupero statistiche
+    lista_istruzioni = []
+    with open(file, "r") as f:
+        for line in f:
+            lista_istruzioni.append(line.replace("\n", ""))
+    lista_istruzioni.pop(0)
+    lista_istruzioni.append("write_blif _")
+    lista_istruzioni.append("print_stats")
+    out = process(file, lista_istruzioni, write=False)
+    out = out[len(out)-1]
+    nodes = int(out[out.find("nodes") + 6:out.find("latches")])
+    if not stg:
+        lits = int(out[out.find("lits") + 10:])
+    else:
+        lits = int(out[out.find("lits") + 10:out.find("#states")])
+    # completo lo script con il write_blif
+    nome = file + "_" + str(nodes) + "_" + str(lits)
+    with open(file, "a") as f:
+        f.write("write_blif " + nome + ".blif\n")
+    # cerco se esiste già un file con le stesse caratteristiche
+    blif_name = nome + ".blif"
+    script_name = nome + ".script"
+    if os.path.exists(script_name):
+        a = os.path.getsize(script_name)
+        b = os.path.getsize(file)
+        if b < a:
+            os.remove(blif_name)
+            os.remove(script_name)
+    if not os.path.exists(script_name):
+        os.rename("_", blif_name)
+        os.rename(file, script_name)
+    return [blif_name, script_name]
 
 
 # entry point
@@ -193,3 +225,8 @@ if __name__ == "__main__":
     best_result = best_script(lista_risultati)
     # creazione del nuovo file di script
     file_script = crea_script(best_result, lista_risultati[best_result][1])
+    # conclusione file script e generazione file min
+    nome_min = minimize(file_script)
+    # stampa finale
+    print("Creato file " + nome_min[0])
+    print("Creato file " + nome_min[1])

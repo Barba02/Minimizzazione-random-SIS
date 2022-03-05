@@ -8,6 +8,4 @@ tenere nella stessa cartella
 
 ToDo
 canalizza warning
-sovrascrittura script finale se in meno righe
-genera file minimo solo una volta trovato lo script finale
-esecuzione del processo in funzione
+commenti/nomi
