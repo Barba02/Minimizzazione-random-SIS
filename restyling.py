@@ -1,9 +1,9 @@
 import os
 import sys
 import random
-import multiprocessing
 import subprocess as sp
-import concurrent.futures
+import multiprocessing as mp
+import concurrent.futures as cf
 
 
 # ricerca di un stg nel file
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     # generazione lista per il salvataggio dei risultati
     lista_risultati = [0] * num_tentativi if (not stg) else [0] * num_tentativi * 2
     # creazione ed esecuzione dei tentativi su thread diversi
-    with concurrent.futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+    with cf.ThreadPoolExecutor(max_workers=mp.cpu_count()) as executor:
         for i in range(num_tentativi):
             if not stg:
                 executor.submit(tentativo_datapath, i)
