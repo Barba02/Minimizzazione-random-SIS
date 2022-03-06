@@ -4,7 +4,7 @@ tramite SIS.<br/>
 ### Funzionamento
 Il programma prende in input il nome del file .blif da minimizzare, il numero di tentativi da eseguire,
 il numero di comandi da eseguire per ogni tentativo e la modalità di minimizzazione (per area o per ritardo).<br/>
-Durante l'esecuzione, per ogni tentativo, si crea un thread che genera un file di script, dopodiché
+Durante l'esecuzione, per ogni tentativo, si crea un thread che genera un file di script con comandi di minimizzazione randomici, dopodiché
 si confrontano i risultati ottenuti da ogni tentativo e viene tenuto il migliore, cancellando
 gli altri.<br/>
 Alla fine dell'esecuzione si hanno un file di script e un file .blif minimizzato
