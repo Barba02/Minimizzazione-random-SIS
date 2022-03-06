@@ -18,12 +18,12 @@ generati da SIS.
 * __num_comandi__: numero di comandi di minimizzazione che vengono eseguiti in ogni tentativo (>=1)
 * __modalità__: può essere 'a' se si intende minimizzare per area, 'r' se per ritardo
 ### Note
-! Per le fsm, ogni combinazione di comandi viene testata dopo assegnazione degli
-stati sia con algoritmo _jedi_ che con algoritmo _nova_.<br/>
-! Eseguire su macchina Linux con SIS installato.<br/>
-! È necessario avere i file da minimizzare (e qualsiasi file con sotto-componenti) nella stessa
-cartella in cui si esegue lo script.<br/>
-! Si consiglia di minimizzare una fsmd utilizzando come sotto-componenti
+-> Per le fsm, ogni combinazione di comandi viene testata dopo assegnazione degli
+stati sia con algoritmo _jedi_ che con algoritmo _nova_<br/>
+-> Eseguire su macchina Linux con SIS installato<br/>
+-> È necessario avere i file da minimizzare (e qualsiasi file con sotto-componenti) nella stessa
+cartella in cui si esegue lo script<br/>
+-> Si consiglia di minimizzare una fsmd utilizzando come sotto-componenti
 la fsm e il datapath già minimizzati<br/>
-! La terminazione manuale dell'esecuzione lascia nella directory i file precedentemente creati<br/>
-! In base ai parametri forniti e alla complessità dei file .blif, l'esecuzione dello script può richiedere anche diversi minuti
+-> La terminazione manuale dell'esecuzione lascia nella directory i file precedentemente creati<br/>
+-> In base ai parametri forniti e alla complessità dei file .blif, l'esecuzione dello script può richiedere anche diversi minuti
