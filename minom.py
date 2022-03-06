@@ -76,7 +76,7 @@ def find_min(pos, lines):
 def process(file, comandi, algo=None, write=True):
     global file_blif
     # file con warning ed errori di sis
-    error_file = open("sis_we.txt", "w")
+    error_file = open("sis_we.txt", "a")
     # inizio processo
     p = sp.Popen(["sis"], stdin=sp.PIPE, stdout=sp.PIPE, stderr=error_file, text=True)
     # cancellazione dei primi elementi della lista altrimenti si ripetono da esecuzione con jedi
@@ -88,14 +88,14 @@ def process(file, comandi, algo=None, write=True):
         comandi.insert(0, "stg_to_network")
         comandi.insert(0, f"state_assign {algo}")
         comandi.insert(0, "state_minimize stamina")
-    # inserimento del comando per lettura
+    # inserimento del comando per lettura blif
     comandi.insert(0, f"read_blif {file_blif}")
     # apertura file in append altrimenti si cancella quando resta l'ultimo
     with open(file, "a") as f:
         # esecuzione dei comandi
         for istruzione in comandi:
             # scrittura su file solo se il comando non è print_stats e la scrittura è abilitata
-            if istruzione != "print_stats" and write:
+            if write and istruzione != "print_stats":
                 f.write(istruzione + "\n")
             p.stdin.write(istruzione + "\n")
         p.stdin.write("quit\n")
@@ -221,9 +221,9 @@ if __name__ == "__main__":
     # input e verifica modalità di minimizzazione
     mode = str(sys.argv[4])
     if mode != "a" and mode != "r":
-        print("Inserire una modalità di minimizzazione valida")
+        print("Inserire 'a' se si vuole minimizzare per area, 'r' per ritardo")
         exit(1)
-    # controllo se il file è una fsm
+    # controllo se il file descrive una fsm
     stg = ricerca_kiss(file_blif)
     # generazione lista per il salvataggio dei risultati
     lista_risultati = [0] * num_tentativi if (not stg) else [0] * num_tentativi * 2
