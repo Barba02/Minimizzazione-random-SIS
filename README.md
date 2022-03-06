@@ -10,7 +10,8 @@ nominati _min\_nomefile\_nodi\_letterali_.<br/>
 Inoltre, verrà creato un file _sis\_we.txt_ contenente gli errori e i warning trascurabili generati da SIS.
 ### Esecuzione
 ```python3 minom.py file.blif num_tentativi num_comandi modalità```<br/>
-Esempio: ```python3 minom.py datapath.blif 32 256 a```
+Esempio 1: ```python3 minom.py fsm.blif 16 256 a```
+Esempio 2: ```python3 minom.py datapath.blif 32 256 a```
 * __file.blif__: nome del file da minimizzare con estensione .blif
 * __num_tentativi__: numero di tentativi da eseguire (>=1)
 * __num_comandi__: numero di comandi di minimizzazione che vengono eseguiti in ogni tentativo (>=1)
