@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import getopt
 import subprocess as sp
 import multiprocessing as mp
 import concurrent.futures as cf
@@ -24,8 +25,8 @@ def nome_tmp_file_script(pk, file):
 
 # generazione della lista degli input
 def genera_input():
-    global num_input
-    ni = num_input
+    global num_comandi
+    ni = num_comandi
     # comandi sis per la sintesi
     comandi = ["source script.rugged", "eliminate x", "sweep", "fx", "resub", "simplify", "full_simplify", "collapse",
                "reduce_depth", "espresso", "decomp"]
@@ -198,30 +199,51 @@ def minimize(file):
     return [blif_name, script_name]
 
 
+def get_input():
+    global file_blif, num_tentativi, num_comandi, mode
+    opts, args = getopt.getopt(sys.argv[1:], "f:t:c:m:",
+                               ["file =", "num_tentativi =", "num_comandi =", "modalità ="])
+    # controllo numero di parametri
+    if len(opts) != 4 or len(args) != 0:
+        raise Exception("Numero di parametri errato")
+    # controllo e assegnazione dei parametri alla corrispondente variabile
+    for opt, arg in opts:
+        # file
+        if opt in ['-f', '--file']:
+            if arg[-4:] != "blif":
+                raise Exception("Estensione file errata")
+            if not os.path.exists(arg):
+                raise Exception("File non trovato")
+            file_blif = arg
+        # tentativi
+        elif opt in ['-t', '--num_tentativi']:
+            num_tentativi = int(arg)
+            if num_tentativi < 1:
+                raise Exception("Inserire almeno 1 tentativo")
+        # input
+        elif opt in ['-c', '--num_comandi']:
+            num_comandi = int(arg)
+            if num_comandi < 1:
+                raise Exception("Inserire almeno 1 input per tentativo")
+        # modalità
+        elif opt in ['-m', '--modalità']:
+            if arg != "a" and arg != "r":
+                raise Exception("Inserire 'a' se si vuole minimizzare per area, 'r' per ritardo")
+            mode = arg
+        # opzione inesistente
+        else:
+            raise Exception("Errore nell'inserimento dei parametri")
+
+
 # entry point
 if __name__ == "__main__":
-    # input e verifica file
-    file_blif = str(sys.argv[1])
-    if file_blif[-4:] != "blif":
-        print("Estensione file errata")
-        exit(1)
-    if not os.path.exists(file_blif):
-        print("File non trovato")
-        exit(1)
-    # input e verifica tentativi da eseguire
-    num_tentativi = int(sys.argv[2])
-    if num_tentativi < 1:
-        print("Inserire almeno 1 tentativo")
-        exit(1)
-    # input e verifica numero di input per tentativo
-    num_input = int(sys.argv[3])
-    if num_input < 1:
-        print("Inserire almeno 1 input per tentativo")
-        exit(1)
-    # input e verifica modalità di minimizzazione
-    mode = str(sys.argv[4])
-    if mode != "a" and mode != "r":
-        print("Inserire 'a' se si vuole minimizzare per area, 'r' per ritardo")
+    file_blif, mode = "", ""
+    num_tentativi, num_comandi = 0, 0
+    # input parametri
+    try:
+        get_input()
+    except Exception as e:
+        print(str(e))
         exit(1)
     # controllo se il file descrive una fsm
     stg = ricerca_kiss(file_blif)
