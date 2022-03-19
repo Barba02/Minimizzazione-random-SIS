@@ -86,7 +86,6 @@ def process(file, comandi, algo=None, write=True):
             comandi.pop(0)
     # inserimento dei comandi per stg
     if algo is not None:
-        comandi.insert(0, "stg_to_network")
         comandi.insert(0, f"state_assign {algo}")
         comandi.insert(0, "state_minimize stamina")
     # inserimento del comando per lettura blif
@@ -146,7 +145,7 @@ def best_script(lista):
 def crea_script(index, riga):
     global file_blif, stg
     # scrittura dello script migliore
-    add = 1 if (not stg) else 4
+    add = 1 if (not stg) else 3
     file_tmp = nome_tmp_file_script(index, file_blif)
     file_script_name = "min_" + file_tmp[:file_tmp.rfind("_")]
     with open(file_tmp, "r") as r, open(file_script_name, "w") as w:
